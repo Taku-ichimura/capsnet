@@ -22,7 +22,7 @@ train block
 + train func, test func...etc
 
 
-## Reference
+## Reference(code & theory)
 Japanese(capsnetについての実装や説明をまとめたissue)
 + https://github.com/arXivTimes/arXivTimes/issues/488
 
