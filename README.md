@@ -20,3 +20,17 @@ train block
 + Implement decoder and reconstract-loss
 + fill docstrings and comment
 + train func, test func...etc
+
+
+## Reference
+Japanese(capsnetについての実装や説明をまとめたissue)
++ https://github.com/arXivTimes/arXivTimes/issues/488
+Article
++ https://jhui.github.io/2017/11/03/Dynamic-Routing-Between-Capsules/
+### Github
+pytorch
++ https://github.com/XifengGuo/CapsNet-Pytorch
++ https://github.com/motokimura/capsnet_pytorch
+
+tensorflow(original)
++ https://github.com/Sarasra/models/tree/master/research/capsules
