@@ -25,6 +25,7 @@ train block
 ## Reference
 Japanese(capsnetについての実装や説明をまとめたissue)
 + https://github.com/arXivTimes/arXivTimes/issues/488
+
 Article
 + https://jhui.github.io/2017/11/03/Dynamic-Routing-Between-Capsules/
 ### Github
