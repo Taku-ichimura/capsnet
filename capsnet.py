@@ -97,5 +97,3 @@ def margin_loss(labels, raw_logits, margin=0.4, downweight=0.5):
     L_margin = 0.5 * positive_cost + downweight * 0.5 * negative_cost
     L_margin = L_margin.sum(dim=1).mean()
     return L_margin
-
-def train()
