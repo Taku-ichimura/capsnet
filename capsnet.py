@@ -119,6 +119,10 @@ class DigitCaps(nn.Module):
         self.W = nn.Parameter(torch.Tensor(num_capsuel,in_capsuel_dim,num_classes*out_capsuel_dim))
         nn.init.kaiming_normal_(self.W)
     def forward(self,x):
+        '''
+        ToDo:
+            Tensorの変換に無駄が多いので軽くする
+        '''
         batch_num,input_capsuel_num,_ = x.shape
         #[B, 1152,8]→[B, 1152, 8, 10*16]
         x = torch.stack([x]* self.num_classes*self.out_capsuel_dim,dim=3)
@@ -395,4 +399,3 @@ if __name__ == "__main__":
         print(correct.item() / len(trainloader.dataset))
         torch.save(net.state_dict(), "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth")
 
-    
