@@ -4,26 +4,24 @@ build capsnet
 [original paper](https://arxiv.org/abs/1710.09829)
 
 ## Usage
-Now,this program can only build capsnet.
+Now,this program can build capsnet and train.
 
 In default,the model is built for MNIST.
 
 ```python
-from capsnet import CapsNet,margin_loss
+from capsnet import CapsNet,total_loss
 net = CapsNet()
-criterion = margin_loss
+criterion = total_loss
 '''
 train block
 '''
 ```
 ## ToDo
-+ Implement decoder and reconstract-loss
-+ fill docstrings and comment
 + train func, test func...etc
 
 
 ## Reference(code & theory)
-Japanese(capsnetについての実装や説明をまとめたissue)
+capsnetについての実装や説明をまとめたissue
 + https://github.com/arXivTimes/arXivTimes/issues/488
 
 Article
@@ -33,5 +31,5 @@ pytorch
 + https://github.com/XifengGuo/CapsNet-Pytorch
 + https://github.com/motokimura/capsnet_pytorch
 
-tensorflow(original)
+original program(Tensorflow)
 + https://github.com/Sarasra/models/tree/master/research/capsules
