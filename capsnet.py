@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 import numpy as np
+from tqdm import tqdm
 import torch
 import torchvision
 import torch.nn as nn
@@ -343,21 +345,101 @@ def total_loss(labels, output,x,recon,alpha=0.0005):
     L_recon = reconstruct_loss(x,recon,alpha)
     return L_margin + L_recon
 
-if __name__ == "__main__":
-    net = CapsNet()
+def train(net,criterion,optimizer,sheduler,trainloader,epochs=50):
+    '''
+    モデルを訓練する関数
+    epochごとの重みをcaps_weightに保存する
+    caps_weightがなければ最初に作成する
 
+    Parameters
+    ----------
+    net : model
+        モデル
+    criterion : function
+        使用する損失関数
+    optimizer : optim
+        使用する勾配法
+    sheduler : optim.lr_scheduler
+        学習率のスケジューラー
+    trainloader : dataloader
+        訓練データのデータローダー
+    epochs : int default 50
+        エポック数
+    '''
+    os.makedirs("./caps_weight", exist_ok=True)
+    for epoch in range(epochs):
+        train_loss = 0
+        correct = 0
+        sheduler.step()
+        for i,(image,label) in enumerate(tqdm(trainloader)):
+            label = torch.zeros(label.size(0), 10).scatter_(1, label.view(-1, 1), 1.)
+            optimizer.zero_grad()
+            image = image.to("cuda")
+            label = label.to("cuda")
+            out,recon = net(image,label)
+            loss = criterion(labels=label, output=out,recon=recon,x = image)
+            loss.backward()
+            optimizer.step()
+            out = out.max(1)[1]
+            label = label.data.max(1)[1]
+            correct+= out.eq(label).cpu().sum()
+            train_loss += loss.item()
+
+            print("\r {}/{}-loss:{},acc:{}".format(epoch,50,train_loss/(i+1),1.0*correct/(i+1)/100), end="")
+        print("epoch:{}".format(epoch))
+        print(train_loss/len(trainloader))
+        print(correct.item() / len(trainloader.dataset))
+        torch.save(net.state_dict(), "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth")
+
+def test(net,criterion,testloader):
+    '''
+    モデルの性能をテストする関数
+
+    Parameters
+    ----------
+    net : model
+        モデル
+    criterion : function
+        使用する損失関数
+    testloader : dataloader
+        テストデータのデータローダー
+    '''
+    net.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for x, y in tqdm(test_loader):
+            y = torch.zeros(y.size(0), 10).scatter_(1, y.view(-1, 1), 1.)
+            x = x.to("cuda")
+            y = y.to("cuda")
+            y_pred,recon = net(x)
+            test_loss += criterion(labels=y, output=y_pred,recon=recon,x = x)
+            y_pred = y_pred.max(1)[1]
+            y_true = y.data.max(1)[1]
+            correct += y_pred.eq(y_true).cpu().sum()
+    test_loss /= len(test_loader.dataset)
+    print("epoch:{} acc:{} loss:{}".format(epoch,test_ac,test_loss.item()))
+        
+if __name__ == "__main__":
+    #set parameter
+    epochs = 50
+    batch_size = 100
+    initial_lr = 0.0001
+    decay_rate = 0.9
+
+    net = CapsNet()
     net.to("cuda")
 
     transform = transforms.Compose(
-    [transforms.ToTensor(),
-     transforms.Normalize((0.1307,), (0.3081,))])
+    [transforms.RandomCrop(size=28, padding=2),
+        transforms.ToTensor()])
 
     trainset = torchvision.datasets.MNIST(root='./datasets/MNIST', 
                                             train=True,
                                             download=True,
                                             transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset,
-                                                batch_size=100,
+                                                batch_size=batch_size,
                                                 shuffle=True,
                                                 num_workers=2)
 
@@ -371,31 +453,15 @@ if __name__ == "__main__":
                                                 num_workers=2)
 
     criterion = total_loss#caps_loss
-    optimizer = optim.Adam(net.parameters(),lr=0.001)
-    lr_decay = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
+    optimizer = optim.Adam(net.parameters(),lr=initial_lr)
+    sheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=decay_rate)
 
     #train
+    train(net,criterion,optimizer,sheduler,trainloader,epochs=epochs)
+    #test
     for epoch in range(50):
-        train_loss = 0
-        correct = 0
-        lr_decay.step()
-        for i,(image,label) in enumerate(tqdm(trainloader)):
-            label = torch.zeros(label.size(0), 10).scatter_(1, label.view(-1, 1), 1.)
-            optimizer.zero_grad()
-            image = image.to("cuda")
-            label = label.to("cuda")
-            out,recon = net(image,label)
-            loss = criterion(labels=label, output=out,recon=recon,x = image)
-            loss.backward()
-            optimizer.step()
-            out = out.max(1)[1]
-            label = label.data.max(1)[1]
-            correct+= out.eq(label).cpu().sum()
-            
-            train_loss += loss.item()
-            print("\r {}/{}-loss:{:.6f},acc:{:.6f}".format(epoch,50,train_loss/(i+1),1.0*correct/(i+1)/100), end="")
-        print("epoch:{}".format(epoch))
-        print(train_loss/len(trainloader))
-        print(correct.item() / len(trainloader.dataset))
-        torch.save(net.state_dict(), "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth")
+        name = "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth"
+        net.load_state_dict(torch.load(name))
+        net.to("cuda")
+        test_loss,test_ac = test(net,testloader)
 
