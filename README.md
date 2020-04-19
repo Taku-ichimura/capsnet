@@ -16,6 +16,15 @@ criterion = total_loss
 train block
 '''
 ```
+## result
+
+![Screenshot from 2020-04-19 13-26-10](https://user-images.githubusercontent.com/22934822/79679494-7378c080-8241-11ea-8771-07f75605ba71.png)
+
+Achieved 99.61% of MNIST's test data
+
+settings is same as main func
+
+
 ## ToDo
 + train func, test func...etc
 
