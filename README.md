@@ -10,17 +10,8 @@ build capsnet
 + torchvision
 
 ## Usage
-Now,this program can build capsnet and train.
-
-In default,the model is built for MNIST.
-
-```python
-from capsnet import CapsNet,total_loss
-net = CapsNet()
-criterion = total_loss
-'''
-train block
-'''
+```
+python capsnet.py
 ```
 ## result
 
