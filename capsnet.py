@@ -463,5 +463,5 @@ if __name__ == "__main__":
         name = "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth"
         net.load_state_dict(torch.load(name))
         net.to("cuda")
-        test_loss,test_ac = test(net,testloader)
+        test_loss,test_ac = test(net,criterion,testloader)
 
