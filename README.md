@@ -1,7 +1,13 @@
-# capsnet
+# CapsNet
 build capsnet
 
 [original paper](https://arxiv.org/abs/1710.09829)
+
+## Requirements
++ tqdm
++ numpy
++ torch
++ torchvision
 
 ## Usage
 Now,this program can build capsnet and train.
@@ -23,11 +29,6 @@ train block
 Achieved 99.61% of MNIST's test data
 
 settings is same as main func
-
-
-## ToDo
-+ train func, test func...etc
-
 
 ## Reference(code & theory)
 capsnetについての実装や説明をまとめたissue
