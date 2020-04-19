@@ -387,8 +387,8 @@ def train(net,criterion,optimizer,sheduler,trainloader,epochs=50):
 
             print("\r {}/{}-loss:{},acc:{}".format(epoch,50,train_loss/(i+1),1.0*correct/(i+1)/100), end="")
         print("epoch:{}".format(epoch))
-        print(train_loss/len(trainloader))
-        print(correct.item() / len(trainloader.dataset))
+        print("loss:{}".format(train_loss/len(trainloader)))
+        print("acc:{}".format(correct.item() / len(trainloader.dataset)))
         torch.save(net.state_dict(), "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth")
 
 def test(net,criterion,testloader):
@@ -408,7 +408,7 @@ def test(net,criterion,testloader):
     test_loss = 0
     correct = 0
     with torch.no_grad():
-        for x, y in tqdm(test_loader):
+        for x, y in tqdm(testloader):
             y = torch.zeros(y.size(0), 10).scatter_(1, y.view(-1, 1), 1.)
             x = x.to("cuda")
             y = y.to("cuda")
@@ -417,7 +417,8 @@ def test(net,criterion,testloader):
             y_pred = y_pred.max(1)[1]
             y_true = y.data.max(1)[1]
             correct += y_pred.eq(y_true).cpu().sum()
-    test_loss /= len(test_loader.dataset)
+    test_loss /= len(testloader.dataset)
+    test_ac = correct.item() / len(testloader.dataset)
     print("epoch:{} acc:{} loss:{}".format(epoch,test_ac,test_loss.item()))
         
 if __name__ == "__main__":
@@ -459,9 +460,9 @@ if __name__ == "__main__":
     #train
     train(net,criterion,optimizer,sheduler,trainloader,epochs=epochs)
     #test
-    for epoch in range(50):
+    for epoch in range(epochs):
         name = "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth"
         net.load_state_dict(torch.load(name))
         net.to("cuda")
-        test_loss,test_ac = test(net,criterion,testloader)
+        test(net,criterion,testloader)
 
