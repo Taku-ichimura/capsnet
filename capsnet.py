@@ -223,7 +223,8 @@ class CapsNet(nn.Module):
         self.conv = nn.Conv2d(in_channels = 1,out_channels=256,kernel_size=9,stride=1)
         self.relu = nn.ReLU()
         #He-Normalize
-        nn.init.kaiming_normal_(self.conv.weight)
+        # nn.init.kaiming_normal_(self.conv.weight)
+
         self.prime = PrimaryCaps()
         self.digit = DigitCaps(num_classes,1152,out_capsuel_dim,in_capsuel_dim,num_routing)
 
@@ -371,7 +372,7 @@ def train(net,criterion,optimizer,sheduler,trainloader,epochs=50):
         train_loss = 0
         correct = 0
         sheduler.step()
-        for i,(image,label) in enumerate(tqdm(trainloader)):
+        for i,(image,label) in enumerate(trainloader):
             label = torch.zeros(label.size(0), 10).scatter_(1, label.view(-1, 1), 1.)
             optimizer.zero_grad()
             image = image.to("cuda")
@@ -385,13 +386,12 @@ def train(net,criterion,optimizer,sheduler,trainloader,epochs=50):
             correct+= out.eq(label).cpu().sum()
             train_loss += loss.item()
 
-            print("\r {}/{}-loss:{},acc:{}".format(epoch,50,train_loss/(i+1),1.0*correct/(i+1)/100), end="")
-        print("epoch:{}".format(epoch))
-        print("loss:{}".format(train_loss/len(trainloader)))
-        print("acc:{}".format(correct.item() / len(trainloader.dataset)))
+            print("\r {}/{} {}% -loss:{},acc:{}".format(epoch,50,int(i/len(trainloader)*100),train_loss/(i+1),1.0*correct/(i+1)/100), end="")
+        print("")
+        print("epoch:{} loss:{} acc:{}".format(epoch,train_loss/len(trainloader),correct.item() / len(trainloader.dataset)))
         torch.save(net.state_dict(), "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth")
 
-def test(net,criterion,testloader):
+def test(net,epoch,criterion,testloader):
     '''
     モデルの性能をテストする関数
 
@@ -399,6 +399,8 @@ def test(net,criterion,testloader):
     ----------
     net : model
         モデル
+    epoch : int
+        現在のepoch
     criterion : function
         使用する損失関数
     testloader : dataloader
@@ -425,7 +427,7 @@ if __name__ == "__main__":
     #set parameter
     epochs = 50
     batch_size = 100
-    initial_lr = 0.0001
+    initial_lr = 0.001
     decay_rate = 0.9
 
     net = CapsNet()
@@ -464,5 +466,5 @@ if __name__ == "__main__":
         name = "./caps_weight/epoch_"+str(epoch)+"_capsnet_weight.pth"
         net.load_state_dict(torch.load(name))
         net.to("cuda")
-        test(net,criterion,testloader)
+        test(net,epoch,criterion,testloader)
 
